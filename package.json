@@ -1,0 +1,15 @@
+{
+  "name": "bazaarlink-auto-creator",
+  "version": "1.0.0",
+  "description": "End-to-end BazaarLink account + API key auto-creator (tempmail.cloud inbox, random identity, Turnstile handling).",
+  "type": "module",
+  "bin": { "bazaarlink-create": "./cli.mjs" },
+  "scripts": {
+    "create": "node cli.mjs",
+    "create:5": "node cli.mjs --count 5",
+    "postinstall": "playwright install chromium"
+  },
+  "dependencies": {
+    "playwright": "^1.47.0"
+  }
+}

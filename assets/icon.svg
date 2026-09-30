@@ -1,0 +1,23 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="BazaarLink Auto-Creator icon">
+  <defs>
+    <linearGradient id="ibg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#111a2e"/>
+      <stop offset="100%" stop-color="#0a0d16"/>
+    </linearGradient>
+    <linearGradient id="iorb" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#4f8cff"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+    <filter id="iglow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="200" height="200" rx="44" fill="url(#ibg)"/>
+  <g transform="translate(100 100)" filter="url(#iglow)">
+    <circle r="66" fill="none" stroke="#22d3ee" stroke-width="3" opacity="0.5"/>
+    <circle r="50" fill="none" stroke="#4f8cff" stroke-width="2" opacity="0.35"/>
+    <circle r="36" fill="url(#iorb)"/>
+    <path d="M-16 3 L-3 16 L18 -12" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

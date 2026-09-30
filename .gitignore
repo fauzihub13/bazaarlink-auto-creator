@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# Generated output / credentials
+results.json
+results*.json
+*.local.json
+.env
+.env.*
+
+# Playwright / browser
+.cache/
+playwright-report/
+test-results/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.log
