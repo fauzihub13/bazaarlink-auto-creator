@@ -46,13 +46,18 @@ git clone https://github.com/0xgetz/bazaarlink-auto-creator.git
 cd bazaarlink-auto-creator
 npm install                 # installs Playwright + Chromium
 
-node cli.mjs                # create 1 account
+cp .env.example .env        # then set CAPSOLVER_KEY (and optionally PROXY_URL)
+
+node cli.mjs                # create 1 account (direct connection)
 node cli.mjs --count 5      # create 5 accounts, sequentially
-node cli.mjs --headful      # show the browser (debugging / manual Turnstile)
+node cli.mjs --proxy        # route the browser through PROXY_URL from .env
+node cli.mjs --no-proxy     # force a direct connection (default)
+node cli.mjs --headful      # show the browser (debugging)
 node cli.mjs --out keys.json
 ```
 
-Results are written to `results.json` (or `--out <file>`):
+Only accounts that complete the whole flow are saved to `results.json` (or `--out <file>`). New
+accounts are **appended** to the existing file, so earlier runs are never overwritten:
 
 ```json
 [
@@ -91,9 +96,19 @@ curl https://api.bazaarlink.ai/v1/chat/completions \
 | Step | Mechanism |
 | --- | --- |
 | Inbox | `POST https://tempmail.cloud/api/mailboxes` → `{ email, token, password }` |
-| Sign-up | Real Chromium via Playwright, fills the form, solves Turnstile |
+| Sign-up | Real Chromium via Playwright, fills the form, solves Turnstile with CapSolver |
 | Verification | `GET https://tempmail.cloud/api/messages` polled until the code arrives |
 | API key | `POST https://bazaarlink.ai/api/v1/keys` with the session cookies |
+
+### Turnstile via CapSolver
+
+The Cloudflare Turnstile challenge is solved with **CapSolver** (`AntiTurnstileTaskProxyLess`).
+Playwright intercepts the page's `turnstile.render()` call to capture the site key and the token
+callback, requests a token from CapSolver, and feeds that token straight to the sign-up component.
+The flow needs two tokens — one for sign-up and one for the automatic sign-in after email
+verification — and both are obtained the same way. No manual clicking is involved.
+
+Set `CAPSOLVER_KEY` in `.env` (see `.env.example`).
 
 ## 📁 Project layout
 
@@ -141,30 +156,36 @@ sudo apt-get install -y libglib2.0-0 libnss3 libnspr4 libdbus-1-3 libatk1.0-0 \
 | --- | --- | --- |
 | `--count <n>` | `1` | Number of accounts to create |
 | `--headful` | off | Show the browser window |
+| `--proxy` | off | Route the browser through `PROXY_URL` (from `.env`) |
+| `--no-proxy` | on | Force a direct connection (overrides `--proxy`) |
 | `--out <file>` | `results.json` | Where to write the results |
+
+Environment (`.env`):
+
+| Variable | Required | Description |
+| --- | --- | --- |
+| `CAPSOLVER_KEY` | yes | CapSolver API key used to solve Turnstile |
+| `PROXY_URL` | no | Proxy for the browser, e.g. `http://user:pass@host:port`. Used only with `--proxy` |
 
 Programmatic use:
 
 ```js
 import { createAccount } from "./src/creator.mjs";
 
-const account = await createAccount({ headless: true });
+const account = await createAccount({ headless: true });            // direct
+const proxied = await createAccount({ headless: true, useProxy: true }); // via PROXY_URL
 console.log(account.apiKey);
 ```
 
 `createAccount` also accepts `executablePath` (use a system Chrome instead of bundled Chromium),
-`timeoutMs`, and `keepOpen`.
+`timeoutMs`, `keepOpen`, `proxyUrl` (defaults to `process.env.PROXY_URL`), and `capsolverKey`
+(defaults to `process.env.CAPSOLVER_KEY`).
 
 ## ⚠️ Important: Cloudflare Turnstile & IP reputation
 
-BazaarLink protects **both sign-up and login** with Cloudflare Turnstile. On a datacenter / cloud
-IP that Cloudflare rates poorly, the widget returns *"Verification failed"* and the flow cannot
-complete. This is an **IP-reputation limit, not a script bug**.
-
-- ✅ Works best on a residential / office VPS or a desktop machine.
-- 🖥️ Use `--headful` to watch the browser and complete the challenge by hand if needed — the
-  script waits for the token and then continues automatically.
-- 🔁 If Turnstile occasionally fails, just re-run; it is intermittent.
+BazaarLink protects **both sign-up and login** with Cloudflare Turnstile. The challenge is solved
+with CapSolver, so the browser's egress IP does not need to pass the widget's own verification — but
+a clean IP still helps the rest of the flow. If a run fails intermittently, just re-run.
 
 ## 🛡️ Security & ethics
 
