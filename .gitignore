@@ -7,9 +7,12 @@ yarn.lock
 # Generated output / credentials
 results.json
 results*.json
+results.txt
+results*.txt
 *.local.json
 .env
 .env.*
+!.env.example
 
 # Playwright / browser
 .cache/

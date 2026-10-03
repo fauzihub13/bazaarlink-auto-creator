@@ -80,7 +80,12 @@ export async function waitForCode(token, { fromContains = "bazaarlink", timeoutM
       const text = collectText(msg);
       const haystack = `${from}\n${text}`.toLowerCase();
       if (!haystack.includes(fromContains.toLowerCase())) continue;
-      const m = haystack.match(/(?:^|\D)(\d{6})(?:\D|$)/);
+      // Prefer the provider's structured OTP field when present.
+      const direct = String(msg.otp || msg.code || "").trim();
+      if (/^\d{6}$/.test(direct)) return direct;
+      // Otherwise scan subject/body only (never the sender address, which can
+      // contain digit runs that are not the code).
+      const m = text.match(/(?:^|\D)(\d{6})(?:\D|$)/);
       if (m) return m[1];
     }
     await new Promise((r) => setTimeout(r, intervalMs));
