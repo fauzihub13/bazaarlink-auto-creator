@@ -120,7 +120,8 @@ bazaarlink-auto-creator/
 ├── src/
 │   ├── creator.mjs      # orchestrates the full flow (Playwright + HTTP)
 │   ├── tempmail.mjs     # disposable-inbox client + verification-code extraction
-│   └── random.mjs       # random names, passwords, key labels
+│   ├── random.mjs       # random names, passwords, key labels
+│   └── logger.mjs       # colored, structured terminal output
 ├── assets/
 │   ├── logo.svg
 │   └── icon.svg

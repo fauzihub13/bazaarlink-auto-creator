@@ -12,6 +12,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { createInbox, waitForCode } from "./tempmail.mjs";
 import { randomName, randomPassword, randomKeyName } from "./random.mjs";
+import { c, step, info } from "./logger.mjs";
 
 // Load .env (CAPSOLVER_KEY, PROXY_URL, ...) without pulling in an extra dependency.
 function loadEnv() {
@@ -35,7 +36,8 @@ loadEnv();
 const ORIGIN = "https://bazaarlink.ai";
 const CAPSOLVER_BASE = "https://api.capsolver.com";
 
-function log(msg) { console.log(msg); }
+// Formatting callback consumed by tempmail's poller.
+function pollLog(msg) { info(msg.trim()); }
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 let lastStep = "init";
@@ -70,7 +72,7 @@ async function capsolverSolveTurnstile(clientKey, websiteURL, websiteKey, timeou
   }
   const taskId = created.taskId;
   if (!taskId) throw new Error(`CapSolver createTask returned no taskId: ${JSON.stringify(created).slice(0, 200)}`);
-  log(`  capsolver task: ${taskId}`);
+  info("capsolver task", taskId);
 
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
@@ -105,7 +107,7 @@ async function solveTurnstileToken(page, capsolverKey, timeoutMs) {
     if (!sitekey) await sleep(250);
   }
   if (!sitekey) throw new Error("Turnstile widget never rendered; could not capture its site key.");
-  log(`  sitekey: ${sitekey}`);
+  info("sitekey", sitekey);
 
   return capsolverSolveTurnstile(capsolverKey, `${ORIGIN}/login`, sitekey, timeoutMs);
 }
@@ -148,9 +150,9 @@ export async function createAccount({
 
   // 1. Fresh disposable inbox.
   lastStep = "create-inbox";
-  log("→ Creating a fresh temporary inbox (tempmail.cloud)...");
+  step("Creating a fresh temporary inbox", "(tempmail.cloud)");
   const inbox = await createInbox();
-  log(`  inbox: ${inbox.email}`);
+  info("inbox", c.brightCyan(inbox.email));
 
   const name = randomName();
   const password = defaultPassword && defaultPassword.trim() ? defaultPassword.trim() : randomPassword();
@@ -167,7 +169,7 @@ export async function createAccount({
       viewport: { width: 1280, height: 900 },
       ...(useProxy && proxyUrl ? { proxy: parseProxy(proxyUrl) } : {}),
     });
-    log(useProxy && proxyUrl ? `  proxy: enabled` : `  proxy: disabled`);
+    info("proxy", useProxy && proxyUrl ? c.brightGreen("enabled") : c.gray("disabled"));
 
     // Capture the site's turnstile.render() params so CapSolver's token can be handed
     // to the exact callback the sign-up component waits on.
@@ -195,7 +197,7 @@ export async function createAccount({
 
     // 2. Open the sign-up form.
     lastStep = "open-signup";
-    log("→ Opening sign-up form...");
+    step("Opening sign-up form");
     await page.goto(`${ORIGIN}/login`, { waitUntil: "domcontentloaded", timeout: 60000 });
     await page.waitForLoadState("networkidle", { timeout: 30000 }).catch(() => {});
     await page.getByRole("button", { name: "Accept" }).click({ timeout: 3000 }).catch(() => {});
@@ -205,7 +207,7 @@ export async function createAccount({
 
     // 3. Fill the form.
     lastStep = "fill-form";
-    log(`→ Filling form (name="${name}")...`);
+    step("Filling form", `name="${c.bold(name)}"`);
     await page.fill('input[placeholder="Your name"]', name);
     await page.fill('input[placeholder="you@company.com"]', inbox.email);
     await page.fill('input[placeholder="Enter your password"]', password);
@@ -213,14 +215,14 @@ export async function createAccount({
 
     // 4. Solve Cloudflare Turnstile via CapSolver (token for the sign-up request).
     lastStep = "turnstile";
-    log("→ Solving Turnstile challenge (CapSolver)...");
+    step("Solving Turnstile challenge", "(CapSolver)");
     const signupToken = await solveTurnstileToken(page, capsolverKey, timeoutMs);
     await deliverTurnstileToken(page, signupToken);
-    log("  challenge solved.");
+    info("challenge", c.green("solved"));
 
     // 5. Submit and confirm the verification step appeared.
     lastStep = "submit-signup";
-    log("→ Submitting sign-up...");
+    step("Submitting sign-up");
     await page.getByRole("button", { name: "Create account" }).click();
     await page
       .waitForFunction(() => /Verify your email/i.test(document.body.innerText), null, { timeout: 60000 })
@@ -231,27 +233,27 @@ export async function createAccount({
 
     // 6. Read the 6-digit code from the inbox.
     lastStep = "read-code";
-    log("→ Waiting for the verification email...");
-    const code = await waitForCode(inbox.token, { fromContains: "bazaarlink", timeoutMs: 150000, log });
-    log(`  code: ${code}`);
+    step("Waiting for the verification email");
+    const code = await waitForCode(inbox.token, { fromContains: "bazaarlink", timeoutMs: 150000, log: pollLog });
+    info("code", c.brightYellow(c.bold(code)));
 
     // 7. Enter the code. Verifying triggers an automatic sign-in, which consumes a
     //    fresh Turnstile token, so solve a second one before clicking Verify.
     lastStep = "verify-code";
-    log("→ Verifying code...");
+    step("Verifying code");
     const codeInput = page.locator('input[type="text"], input[type="tel"], input:not([type])').first();
     await codeInput.fill(code);
-    log("→ Solving Turnstile challenge for sign-in (CapSolver)...");
+    info("solving Turnstile for sign-in", "(CapSolver)");
     const loginToken = await solveTurnstileToken(page, capsolverKey, timeoutMs);
     await deliverTurnstileToken(page, loginToken);
     await page.getByRole("button", { name: "Verify" }).click();
     await page.waitForFunction(() => /Dashboard|API Keys/i.test(document.body.innerText), null, { timeout: 60000 });
-    log("  email verified, logged in.");
+    info("email", `${c.green("verified")}, logged in`);
 
     // 8. Create an API key via the site's own API (uses the session cookies).
     lastStep = "create-key";
     const keyName = randomKeyName();
-    log(`→ Creating API key ("${keyName}")...`);
+    step("Creating API key", `"${c.bold(keyName)}"`);
     const res = await context.request.post(`${ORIGIN}/api/v1/keys`, {
       headers: { "Content-Type": "application/json" },
       data: { name: keyName },
@@ -262,7 +264,7 @@ export async function createAccount({
     const body = await res.json();
     const apiKey = body.key || body.apiKey || body.plaintextKey || body.value;
     if (!apiKey) throw new Error(`Key created but no key value in response: ${JSON.stringify(body).slice(0, 300)}`);
-    log(`  API key: ${apiKey}`);
+    info("API key", c.brightGreen(apiKey));
 
     return {
       name,

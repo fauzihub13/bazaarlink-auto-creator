@@ -9,6 +9,7 @@
 import { writeFileSync, mkdirSync, readFileSync, appendFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { createAccount } from "./src/creator.mjs";
+import { c, banner, section, success, error, field, sym } from "./src/logger.mjs";
 
 function argValue(flag, fallback) {
   const i = process.argv.indexOf(flag);
@@ -34,17 +35,21 @@ const outTxtFile = argValue("--out-txt", "results.txt");
 const useProxy = process.argv.includes("--proxy") && !process.argv.includes("--no-proxy");
 
 async function main() {
-  console.log(`BazaarLink auto-creator — ${count} account(s), headless=${headless}, proxy=${useProxy ? "on" : "off"}\n`);
+  banner(
+    `${sym.star} BazaarLink auto-creator`,
+    `${count} account(s)  ${sym.dot}  headless=${headless ? c.green("on") : c.yellow("off")}  ${sym.dot}  proxy=${useProxy ? c.green("on") : c.gray("off")}`
+  );
+
   const existing = readExisting(outFile);
   const created = [];
   for (let i = 1; i <= count; i++) {
-    console.log(`=== Account ${i}/${count} ===`);
+    section(i, count, `Account`);
     try {
       const account = await createAccount({ headless, useProxy });
       created.push({ ok: true, ...account });
-      console.log(`✓ Created: ${account.email}\n`);
+      success(`Created ${c.bold(account.email)}`);
     } catch (err) {
-      console.error(`✗ Failed: ${err.message}\n`);
+      error(err.message);
     }
   }
 
@@ -61,13 +66,22 @@ async function main() {
     appendFileSync(outTxtFile, lines);
   }
 
-  console.log(`\nDone: ${created.length}/${count} succeeded. ${merged.length} account(s) saved to ${outFile} (${outTxtFile} appended)`);
+  const okCount = created.length;
+  const summaryColor = okCount === count ? c.brightGreen : okCount > 0 ? c.brightYellow : c.red;
+  console.log();
+  banner(summaryColor(`${sym.ok} Done: ${okCount}/${count} succeeded`));
+  field("Saved", `${merged.length} account(s) → ${c.brightCyan(outFile)}  ${c.gray("+")} ${c.brightCyan(outTxtFile)}`);
+
   for (const r of created) {
-    console.log(`\n--- ${r.email} ---\nPassword: ${r.password}\nAPI key:  ${r.apiKey}\nName:     ${r.name}`);
+    console.log(`\n${c.magenta(sym.box)} ${c.bold(c.brightCyan(r.email))}`);
+    field("Name", r.name, c.white);
+    field("Password", r.password, c.brightYellow);
+    field("API key", r.apiKey, c.brightGreen);
+    field("Base URL", r.baseUrl, c.gray);
   }
 }
 
 main().catch((err) => {
-  console.error("Fatal:", err);
+  error(`Fatal: ${err.message}`);
   process.exit(1);
 });

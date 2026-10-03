@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `.env.example` with the required/optional variables.
 - `DEFAULT_PASSWORD`: fixed password for created accounts; random when unset.
 - `--out-txt` (default `results.txt`): plain `email|apiKey` log, appended per run.
+- `src/logger.mjs`: zero-dependency colored output (banners, step lines, fields); honors `NO_COLOR`
+  and falls back to plain text when stdout is not a TTY.
 
 ### Fixed
 
