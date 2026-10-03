@@ -5,7 +5,8 @@
 //   node cli.mjs --proxy         -> route the browser through PROXY_URL (from .env)
 //   node cli.mjs --no-proxy      -> force direct connection (default)
 //   node cli.mjs --out results.json
-import { writeFileSync, mkdirSync, readFileSync } from "node:fs";
+//   node cli.mjs --out-txt results.txt
+import { writeFileSync, mkdirSync, readFileSync, appendFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { createAccount } from "./src/creator.mjs";
 
@@ -29,6 +30,7 @@ function readExisting(file) {
 const count = parseInt(argValue("--count", "1"), 10) || 1;
 const headless = !process.argv.includes("--headful");
 const outFile = argValue("--out", "results.json");
+const outTxtFile = argValue("--out-txt", "results.txt");
 const useProxy = process.argv.includes("--proxy") && !process.argv.includes("--no-proxy");
 
 async function main() {
@@ -52,7 +54,14 @@ async function main() {
   mkdirSync(dirname(outFile) || ".", { recursive: true });
   writeFileSync(outFile, JSON.stringify(merged, null, 2));
 
-  console.log(`\nDone: ${created.length}/${count} succeeded. ${merged.length} account(s) saved to ${outFile}`);
+  // Simple "email|apiKey" log, appended line by line.
+  if (created.length) {
+    mkdirSync(dirname(outTxtFile) || ".", { recursive: true });
+    const lines = created.map((r) => `${r.email}|${r.apiKey}`).join("\n") + "\n";
+    appendFileSync(outTxtFile, lines);
+  }
+
+  console.log(`\nDone: ${created.length}/${count} succeeded. ${merged.length} account(s) saved to ${outFile} (${outTxtFile} appended)`);
   for (const r of created) {
     console.log(`\n--- ${r.email} ---\nPassword: ${r.password}\nAPI key:  ${r.apiKey}\nName:     ${r.name}`);
   }

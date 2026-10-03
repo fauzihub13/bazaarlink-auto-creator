@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `.env` loading (no extra dependency) for `CAPSOLVER_KEY` and `PROXY_URL`.
 - `.env.example` with the required/optional variables.
+- `DEFAULT_PASSWORD`: fixed password for created accounts; random when unset.
+- `--out-txt` (default `results.txt`): plain `email|apiKey` log, appended per run.
 
 ### Fixed
 

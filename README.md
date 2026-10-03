@@ -57,7 +57,8 @@ node cli.mjs --out keys.json
 ```
 
 Only accounts that complete the whole flow are saved to `results.json` (or `--out <file>`). New
-accounts are **appended** to the existing file, so earlier runs are never overwritten:
+accounts are **appended** to the existing file, so earlier runs are never overwritten. A plain
+`email|apiKey` log is also appended to `results.txt` (or `--out-txt <file>`):
 
 ```json
 [
@@ -158,7 +159,8 @@ sudo apt-get install -y libglib2.0-0 libnss3 libnspr4 libdbus-1-3 libatk1.0-0 \
 | `--headful` | off | Show the browser window |
 | `--proxy` | off | Route the browser through `PROXY_URL` (from `.env`) |
 | `--no-proxy` | on | Force a direct connection (overrides `--proxy`) |
-| `--out <file>` | `results.json` | Where to write the results |
+| `--out <file>` | `results.json` | Where to write the results (JSON, appended) |
+| `--out-txt <file>` | `results.txt` | Plain `email|apiKey` log, appended |
 
 Environment (`.env`):
 
@@ -166,6 +168,7 @@ Environment (`.env`):
 | --- | --- | --- |
 | `CAPSOLVER_KEY` | yes | CapSolver API key used to solve Turnstile |
 | `PROXY_URL` | no | Proxy for the browser, e.g. `http://user:pass@host:port`. Used only with `--proxy` |
+| `DEFAULT_PASSWORD` | no | Fixed password for every created account. If empty, a random password is generated |
 
 Programmatic use:
 
@@ -178,8 +181,9 @@ console.log(account.apiKey);
 ```
 
 `createAccount` also accepts `executablePath` (use a system Chrome instead of bundled Chromium),
-`timeoutMs`, `keepOpen`, `proxyUrl` (defaults to `process.env.PROXY_URL`), and `capsolverKey`
-(defaults to `process.env.CAPSOLVER_KEY`).
+`timeoutMs`, `keepOpen`, `proxyUrl` (defaults to `process.env.PROXY_URL`), `capsolverKey`
+(defaults to `process.env.CAPSOLVER_KEY`), and `defaultPassword` (defaults to
+`process.env.DEFAULT_PASSWORD`).
 
 ## ⚠️ Important: Cloudflare Turnstile & IP reputation
 
@@ -189,8 +193,8 @@ a clean IP still helps the rest of the flow. If a run fails intermittently, just
 
 ## 🛡️ Security & ethics
 
-- **The API key is shown only once** — it is captured and stored in `results.json`. Keep that file safe.
-- `results.json`, `.env*` and other secret files are git-ignored by default.
+- **The API key is shown only once** — it is captured and stored in `results.json` / `results.txt`. Keep those files safe.
+- `results.json`, `results.txt`, `.env*` and other secret files are git-ignored by default.
 - Use this only for accounts you are authorised to create, and in line with BazaarLink's terms of service.
 
 ## 🤝 Contributing

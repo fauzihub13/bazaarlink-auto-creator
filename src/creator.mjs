@@ -138,6 +138,7 @@ export async function createAccount({
   useProxy = false,
   proxyUrl = process.env.PROXY_URL,
   capsolverKey = process.env.CAPSOLVER_KEY,
+  defaultPassword = process.env.DEFAULT_PASSWORD,
 } = {}) {
   const { chromium } = await import("playwright");
 
@@ -152,7 +153,7 @@ export async function createAccount({
   log(`  inbox: ${inbox.email}`);
 
   const name = randomName();
-  const password = randomPassword();
+  const password = defaultPassword && defaultPassword.trim() ? defaultPassword.trim() : randomPassword();
 
   const launchArgs = ["--no-sandbox", "--disable-blink-features=AutomationControlled", "--disable-dev-shm-usage"];
   const browser = await chromium.launch({ headless, executablePath, args: launchArgs });
