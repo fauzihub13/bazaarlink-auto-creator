@@ -11,7 +11,7 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { createInbox, waitForCode } from "./tempmail.mjs";
-import { randomName, randomPassword, randomKeyName } from "./random.mjs";
+import { randomName, randomPassword, randomKeyName, randomEmailLocalPart } from "./random.mjs";
 import { c, step, info } from "./logger.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -206,6 +206,7 @@ export async function createAccount({
   proxyUrl = process.env.PROXY_URL,
   capsolverKey = process.env.CAPSOLVER_KEY,
   defaultPassword = process.env.DEFAULT_PASSWORD,
+  emailPrefix = process.env.EMAIL_PREFIX,
   solver,
 } = {}) {
   const solverKind = resolveSolver(solver);
@@ -220,7 +221,7 @@ export async function createAccount({
   // 1. Fresh disposable inbox.
   lastStep = "create-inbox";
   step("Creating a fresh temporary inbox", "(tempmail.cloud)");
-  const inbox = await createInbox();
+  const inbox = await createInbox({ localPart: randomEmailLocalPart(emailPrefix) });
   info("inbox", c.brightCyan(inbox.email));
 
   const name = randomName();

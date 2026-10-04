@@ -26,6 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `.env` loading (no extra dependency) for `CAPSOLVER_KEY` and `PROXY_URL`.
 - `.env.example` with the required/optional variables.
 - `DEFAULT_PASSWORD`: fixed password for created accounts; random when unset.
+- `EMAIL_PREFIX` / `--email-prefix`: custom inbox name prefix. The address becomes
+  `<prefix><random-digits>@<domain>`, keeping each inbox unique.
 - `--out-txt` (default `results.txt`): plain `email|apiKey` log, appended per run.
 - `src/logger.mjs`: zero-dependency colored output (banners, step lines, fields); honors `NO_COLOR`
   and falls back to plain text when stdout is not a TTY.
@@ -34,6 +36,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Verification-code extraction now prefers the provider's structured `otp` field and never scans
   the sender address, which could contain a misleading 6-digit run.
+- `createInbox` now bootstraps a tempmail.cloud browser session (`POST /api/browser-session`) and
+  sends its `tm_browser` cookie; without it the mailbox-creation endpoint answered HTTP 428.
 
 ## [1.0.0] - 2026-09-28
 

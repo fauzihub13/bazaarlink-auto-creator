@@ -5,6 +5,7 @@
 //   node cli.mjs --proxy         -> route the browser through PROXY_URL (from .env)
 //   node cli.mjs --no-proxy      -> force direct connection (default)
 //   node cli.mjs --solver capsolver|camoufox  -> override the Turnstile solver
+//   node cli.mjs --email-prefix mydev          -> custom inbox name prefix
 //   node cli.mjs --out results.json
 //   node cli.mjs --out-txt results.txt
 import { writeFileSync, mkdirSync, readFileSync, appendFileSync } from "node:fs";
@@ -35,6 +36,7 @@ const outFile = argValue("--out", "results.json");
 const outTxtFile = argValue("--out-txt", "results.txt");
 const useProxy = process.argv.includes("--proxy") && !process.argv.includes("--no-proxy");
 const solver = argValue("--solver", undefined);
+const emailPrefix = argValue("--email-prefix", undefined);
 
 async function main() {
   const enabledRaw = String(process.env.CAPSOLVER_ENABLED ?? "true").trim().toLowerCase();
@@ -50,7 +52,7 @@ async function main() {
   for (let i = 1; i <= count; i++) {
     section(i, count, `Account`);
     try {
-      const account = await createAccount({ headless, useProxy, solver });
+      const account = await createAccount({ headless, useProxy, solver, emailPrefix });
       created.push({ ok: true, ...account });
       success(`Created ${c.bold(account.email)}`);
     } catch (err) {

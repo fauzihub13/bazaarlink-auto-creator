@@ -169,6 +169,7 @@ sudo apt-get install -y libglib2.0-0 libnss3 libnspr4 libdbus-1-3 libatk1.0-0 \
 | `--proxy` | off | Route the browser through `PROXY_URL` (from `.env`) |
 | `--no-proxy` | on | Force a direct connection (overrides `--proxy`) |
 | `--solver <name>` | from `.env` | Turnstile solver: `capsolver` or `camoufox` |
+| `--email-prefix <s>` | from `.env` | Prefix for the inbox name → `<s><random-digits>@<domain>` |
 | `--out <file>` | `results.json` | Where to write the results (JSON, appended) |
 | `--out-txt <file>` | `results.txt` | Plain `email|apiKey` log, appended |
 
@@ -180,6 +181,7 @@ Environment (`.env`):
 | `CAPSOLVER_KEY` | if CapSolver | CapSolver API key used to solve Turnstile |
 | `PROXY_URL` | no | Proxy for the browser, e.g. `http://user:pass@host:port`. Used only with `--proxy` |
 | `DEFAULT_PASSWORD` | no | Fixed password for every created account. If empty, a random password is generated |
+| `EMAIL_PREFIX` | no | Prefix for the inbox name → `<prefix><random-digits>@<domain>`. Keeps each address unique. Only `[a-z0-9]` are kept. Empty → a random word is used |
 
 Programmatic use:
 
@@ -194,7 +196,8 @@ console.log(account.apiKey);
 `createAccount` also accepts `executablePath` (use a system Chrome instead of bundled Chromium),
 `timeoutMs`, `keepOpen`, `proxyUrl` (defaults to `process.env.PROXY_URL`), `capsolverKey`
 (defaults to `process.env.CAPSOLVER_KEY`), `defaultPassword` (defaults to
-`process.env.DEFAULT_PASSWORD`), and `solver` (`"capsolver"` or `"camoufox"`).
+`process.env.DEFAULT_PASSWORD`), `emailPrefix` (defaults to `process.env.EMAIL_PREFIX`),
+and `solver` (`"capsolver"` or `"camoufox"`).
 
 ## ⚠️ Important: Cloudflare Turnstile & IP reputation
 

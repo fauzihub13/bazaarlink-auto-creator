@@ -45,6 +45,18 @@ export function randomName() {
   return `${pick(FIRST)} ${pick(LAST)}`;
 }
 
+// Build a unique inbox local-part: "<prefix><digits>". The prefix is sanitized to
+// the characters the mail provider accepts (it lowercases and strips anything
+// else), so only [a-z0-9] survive. When no prefix is given a random word is used,
+// and a random digit run keeps each address unique.
+export function randomEmailLocalPart(prefix = "", digits = 8) {
+  const clean = String(prefix || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const base = clean || pick(WORDS).toLowerCase();
+  let n = "";
+  for (let i = 0; i < digits; i++) n += rand(10);
+  return `${base}${n}`;
+}
+
 // Strong password: e.g. "Panther-Cobalt-4821" (>= 8 chars, mixed case + digits).
 export function randomPassword() {
   return `${pick(WORDS)}-${pick(WORDS)}-${1000 + rand(9000)}`;

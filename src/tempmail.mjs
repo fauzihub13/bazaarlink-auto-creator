@@ -9,18 +9,44 @@ async function j(res) {
   return body;
 }
 
+// POST /api/browser-session returns a `tm_browser` cookie the mailbox-creation
+// endpoint requires (otherwise it answers 428 "browser session required").
+async function getBrowserSession() {
+  const res = await fetch(`${BASE}/api/browser-session`, {
+    method: "POST",
+    headers: {
+      "Origin": BASE,
+      "Referer": `${BASE}/`,
+      "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36",
+      "Accept": "application/json, text/plain, */*",
+    },
+  });
+  if (!res.ok) throw new Error(`tempmail browser-session ${res.status}: ${(await res.text()).slice(0, 200)}`);
+  const raw = typeof res.headers.getSetCookie === "function" ? res.headers.getSetCookie() : [res.headers.get("set-cookie")].filter(Boolean);
+  const cookie = raw.map((line) => line.split(";")[0]).join("; ");
+  if (!cookie) throw new Error("tempmail browser-session returned no cookie");
+  return cookie;
+}
+
 // Create a brand-new inbox. Returns { email, token, password }.
-export async function createInbox() {
+// `localPart` lets you request a custom address name; the provider lowercases it
+// and strips unsupported characters. `domain` is optional (auto-picked when unset).
+export async function createInbox({ localPart, domain } = {}) {
+  const payload = {};
+  if (localPart) payload.localPart = String(localPart).toLowerCase().replace(/[^a-z0-9]/g, "");
+  if (domain) payload.domain = domain;
+  const cookie = await getBrowserSession();
   const res = await fetch(`${BASE}/api/mailboxes`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "Origin": BASE,
       "Referer": `${BASE}/`,
+      "Cookie": cookie,
       "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36",
       "Accept": "application/json, text/plain, */*",
     },
-    body: JSON.stringify({}),
+    body: JSON.stringify(payload),
   });
   const data = await j(res);
   return { email: data.mailbox.email, token: data.token, password: data.password };
