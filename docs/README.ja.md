@@ -11,7 +11,7 @@
 [![Playwright](https://img.shields.io/badge/Playwright-1.47%2B-2EAD33.svg?style=flat-square&logo=playwright&logoColor=white)](https://playwright.dev)
 [![Platform](https://img.shields.io/badge/platform-Ubuntu%20%7C%20Linux%20%7C%20macOS%20%7C%20Windows-8957e5.svg?style=flat-square)](#-動作環境)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-a855f7.svg?style=flat-square)](../CONTRIBUTING.md)
-[![Stars](https://img.shields.io/github/stars/0xgetz/bazaarlink-auto-creator?style=flat-square&color=e3b341)](https://github.com/0xgetz/bazaarlink-auto-creator/stargazers)
+[![Stars](https://img.shields.io/github/stars/fauzihub13/bazaarlink-auto-creator?style=flat-square&color=e3b341)](https://github.com/fauzihub13/bazaarlink-auto-creator/stargazers)
 
 **🌐 言語:**
 [English](../README.md) ·
@@ -42,7 +42,7 @@ VPS での無人実行を想定しています。コマンド1つで、すぐ使
 ## 🚀 クイックスタート
 
 ```bash
-git clone https://github.com/0xgetz/bazaarlink-auto-creator.git
+git clone https://github.com/fauzihub13/bazaarlink-auto-creator.git
 cd bazaarlink-auto-creator
 npm install                 # Playwright + Chromium を導入
 
@@ -177,6 +177,6 @@ BazaarLink は**登録とログインの両方**を Cloudflare Turnstile で保�
 
 ## 📄 ライセンス
 
-[MIT ライセンス](../LICENSE) の下で公開されています。© 2026 0xgetz。
+[MIT ライセンス](../LICENSE) の下で公開されています。元の著作権 © 2026 0xgetz (XHI)。フォークは [fauzihub13](https://github.com/fauzihub13) が保守しています。
 
 <div align="center"><sub>OpenAI 互換 AI ゲートウェイのエコシステムのために。</sub></div>

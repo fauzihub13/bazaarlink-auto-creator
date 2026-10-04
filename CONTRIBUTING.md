@@ -12,7 +12,7 @@ Thanks for your interest in improving **BazaarLink Auto-Creator**! 🎉
 ## Development setup
 
 ```bash
-git clone https://github.com/0xgetz/bazaarlink-auto-creator.git
+git clone https://github.com/fauzihub13/bazaarlink-auto-creator.git
 cd bazaarlink-auto-creator
 npm install
 node cli.mjs --headful     # a visible run is the fastest way to debug

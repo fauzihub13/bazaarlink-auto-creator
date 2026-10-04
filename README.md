@@ -11,7 +11,7 @@
 [![Playwright](https://img.shields.io/badge/Playwright-1.47%2B-2EAD33.svg?style=flat-square&logo=playwright&logoColor=white)](https://playwright.dev)
 [![Platform](https://img.shields.io/badge/platform-Ubuntu%20%7C%20Linux%20%7C%20macOS%20%7C%20Windows-8957e5.svg?style=flat-square)](#-requirements)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-a855f7.svg?style=flat-square)](CONTRIBUTING.md)
-[![Stars](https://img.shields.io/github/stars/0xgetz/bazaarlink-auto-creator?style=flat-square&color=e3b341)](https://github.com/0xgetz/bazaarlink-auto-creator/stargazers)
+[![Stars](https://img.shields.io/github/stars/fauzihub13/bazaarlink-auto-creator?style=flat-square&color=e3b341)](https://github.com/fauzihub13/bazaarlink-auto-creator/stargazers)
 
 **🌐 Languages:**
 [English](README.md) ·
@@ -23,6 +23,12 @@
 </div>
 
 ---
+
+## 🍴 Fork notice
+
+This repository is a **fork** of [0xgetz/bazaarlink-auto-creator](https://github.com/0xgetz/bazaarlink-auto-creator.git).
+It builds on the upstream project with additional features (e.g. customizable inbox name prefix).
+See the [CHANGELOG](CHANGELOG.md) for what changed.
 
 ## ✨ Overview
 
@@ -42,7 +48,7 @@ It is designed to be run unattended on a VPS: one command in, a working key out.
 ## 🚀 Quick start
 
 ```bash
-git clone https://github.com/0xgetz/bazaarlink-auto-creator.git
+git clone https://github.com/fauzihub13/bazaarlink-auto-creator.git
 cd bazaarlink-auto-creator
 npm install                 # installs Playwright + Chromium
 npx camoufox-js fetch       # downloads the Camoufox stealth browser (for the non-API solver)
@@ -217,6 +223,6 @@ Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) and op
 
 ## 📄 License
 
-Released under the [MIT License](LICENSE). © 2026 0xgetz.
+Released under the [MIT License](LICENSE). Originally © 2026 0xgetz (XHI); fork maintained by [fauzihub13](https://github.com/fauzihub13).
 
 <div align="center"><sub>Built for the OpenAI-compatible AI gateway ecosystem.</sub></div>

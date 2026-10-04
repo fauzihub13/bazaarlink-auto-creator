@@ -11,7 +11,7 @@
 [![Playwright](https://img.shields.io/badge/Playwright-1.47%2B-2EAD33.svg?style=flat-square&logo=playwright&logoColor=white)](https://playwright.dev)
 [![Platform](https://img.shields.io/badge/platform-Ubuntu%20%7C%20Linux%20%7C%20macOS%20%7C%20Windows-8957e5.svg?style=flat-square)](#-kebutuhan)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-a855f7.svg?style=flat-square)](../CONTRIBUTING.md)
-[![Stars](https://img.shields.io/github/stars/0xgetz/bazaarlink-auto-creator?style=flat-square&color=e3b341)](https://github.com/0xgetz/bazaarlink-auto-creator/stargazers)
+[![Stars](https://img.shields.io/github/stars/fauzihub13/bazaarlink-auto-creator?style=flat-square&color=e3b341)](https://github.com/fauzihub13/bazaarlink-auto-creator/stargazers)
 
 **🌐 Bahasa:**
 [English](../README.md) ·
@@ -42,7 +42,7 @@ Dirancang agar bisa berjalan tanpa pengawasan di VPS: satu perintah, keluar satu
 ## 🚀 Mulai cepat
 
 ```bash
-git clone https://github.com/0xgetz/bazaarlink-auto-creator.git
+git clone https://github.com/fauzihub13/bazaarlink-auto-creator.git
 cd bazaarlink-auto-creator
 npm install                 # memasang Playwright + Chromium
 
@@ -177,6 +177,6 @@ Kontribusi sangat diterima! Baca [CONTRIBUTING.md](../CONTRIBUTING.md) lalu buka
 
 ## 📄 Lisensi
 
-Dirilis di bawah [Lisensi MIT](../LICENSE). © 2026 0xgetz.
+Dirilis di bawah [Lisensi MIT](../LICENSE). Hak cipta asli © 2026 0xgetz (XHI); fork dipelihara oleh [fauzihub13](https://github.com/fauzihub13).
 
 <div align="center"><sub>Dibuat untuk ekosistem AI gateway yang kompatibel dengan OpenAI.</sub></div>

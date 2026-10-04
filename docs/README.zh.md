@@ -11,7 +11,7 @@
 [![Playwright](https://img.shields.io/badge/Playwright-1.47%2B-2EAD33.svg?style=flat-square&logo=playwright&logoColor=white)](https://playwright.dev)
 [![Platform](https://img.shields.io/badge/platform-Ubuntu%20%7C%20Linux%20%7C%20macOS%20%7C%20Windows-8957e5.svg?style=flat-square)](#-环境要求)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-a855f7.svg?style=flat-square)](../CONTRIBUTING.md)
-[![Stars](https://img.shields.io/github/stars/0xgetz/bazaarlink-auto-creator?style=flat-square&color=e3b341)](https://github.com/0xgetz/bazaarlink-auto-creator/stargazers)
+[![Stars](https://img.shields.io/github/stars/fauzihub13/bazaarlink-auto-creator?style=flat-square&color=e3b341)](https://github.com/fauzihub13/bazaarlink-auto-creator/stargazers)
 
 **🌐 语言:**
 [English](../README.md) ·
@@ -42,7 +42,7 @@
 ## 🚀 快速开始
 
 ```bash
-git clone https://github.com/0xgetz/bazaarlink-auto-creator.git
+git clone https://github.com/fauzihub13/bazaarlink-auto-creator.git
 cd bazaarlink-auto-creator
 npm install                 # 安装 Playwright + Chromium
 
@@ -176,6 +176,6 @@ BazaarLink 对**注册和登录**都启用了 Cloudflare Turnstile 保护。在 
 
 ## 📄 许可证
 
-基于 [MIT 许可证](../LICENSE) 发布。© 2026 0xgetz。
+基于 [MIT 许可证](../LICENSE) 发布。原始版权 © 2026 0xgetz (XHI);本 fork 由 [fauzihub13](https://github.com/fauzihub13) 维护。
 
 <div align="center"><sub>为兼容 OpenAI 的 AI 网关生态而构建。</sub></div>

@@ -11,7 +11,7 @@
 [![Playwright](https://img.shields.io/badge/Playwright-1.47%2B-2EAD33.svg?style=flat-square&logo=playwright&logoColor=white)](https://playwright.dev)
 [![Platform](https://img.shields.io/badge/platform-Ubuntu%20%7C%20Linux%20%7C%20macOS%20%7C%20Windows-8957e5.svg?style=flat-square)](#-requisitos)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-a855f7.svg?style=flat-square)](../CONTRIBUTING.md)
-[![Stars](https://img.shields.io/github/stars/0xgetz/bazaarlink-auto-creator?style=flat-square&color=e3b341)](https://github.com/0xgetz/bazaarlink-auto-creator/stargazers)
+[![Stars](https://img.shields.io/github/stars/fauzihub13/bazaarlink-auto-creator?style=flat-square&color=e3b341)](https://github.com/fauzihub13/bazaarlink-auto-creator/stargazers)
 
 **🌐 Idiomas:**
 [English](../README.md) ·
@@ -42,7 +42,7 @@ Está diseñado para ejecutarse sin supervisión en un VPS: un comando y obtiene
 ## 🚀 Inicio rápido
 
 ```bash
-git clone https://github.com/0xgetz/bazaarlink-auto-creator.git
+git clone https://github.com/fauzihub13/bazaarlink-auto-creator.git
 cd bazaarlink-auto-creator
 npm install                 # instala Playwright + Chromium
 
@@ -177,6 +177,6 @@ flujo no puede completarse. Es un **límite de reputación de IP, no un fallo de
 
 ## 📄 Licencia
 
-Publicado bajo la [Licencia MIT](../LICENSE). © 2026 0xgetz.
+Publicado bajo la [Licencia MIT](../LICENSE). Copyright original © 2026 0xgetz (XHI); fork mantenido por [fauzihub13](https://github.com/fauzihub13).
 
 <div align="center"><sub>Creado para el ecosistema de pasarelas de IA compatibles con OpenAI.</sub></div>

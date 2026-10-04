@@ -9,7 +9,7 @@
 ## Reporting a vulnerability
 
 Please **do not** open a public issue for security problems. Instead, report them
-privately via GitHub's [Security Advisories](https://github.com/0xgetz/bazaarlink-auto-creator/security/advisories/new)
+privately via GitHub's [Security Advisories](https://github.com/fauzihub13/bazaarlink-auto-creator/security/advisories/new)
 or by contacting the maintainer. We will acknowledge your report as soon as possible
 and keep you informed of the fix.
 
