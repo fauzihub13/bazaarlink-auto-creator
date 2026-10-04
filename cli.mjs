@@ -4,6 +4,7 @@
 //   node cli.mjs --headful       -> show the browser (useful for debugging)
 //   node cli.mjs --proxy         -> route the browser through PROXY_URL (from .env)
 //   node cli.mjs --no-proxy      -> force direct connection (default)
+//   node cli.mjs --solver capsolver|camoufox  -> override the Turnstile solver
 //   node cli.mjs --out results.json
 //   node cli.mjs --out-txt results.txt
 import { writeFileSync, mkdirSync, readFileSync, appendFileSync } from "node:fs";
@@ -33,11 +34,15 @@ const headless = !process.argv.includes("--headful");
 const outFile = argValue("--out", "results.json");
 const outTxtFile = argValue("--out-txt", "results.txt");
 const useProxy = process.argv.includes("--proxy") && !process.argv.includes("--no-proxy");
+const solver = argValue("--solver", undefined);
 
 async function main() {
+  const enabledRaw = String(process.env.CAPSOLVER_ENABLED ?? "true").trim().toLowerCase();
+  const capsolverEnabled = !["false", "0", "no", "off"].includes(enabledRaw);
+  const activeSolver = solver || (capsolverEnabled ? "capsolver" : "camoufox");
   banner(
     `${sym.star} BazaarLink auto-creator`,
-    `${count} account(s)  ${sym.dot}  headless=${headless ? c.green("on") : c.yellow("off")}  ${sym.dot}  proxy=${useProxy ? c.green("on") : c.gray("off")}`
+    `${count} account(s)  ${sym.dot}  headless=${headless ? c.green("on") : c.yellow("off")}  ${sym.dot}  proxy=${useProxy ? c.green("on") : c.gray("off")}  ${sym.dot}  solver=${activeSolver}`
   );
 
   const existing = readExisting(outFile);
@@ -45,7 +50,7 @@ async function main() {
   for (let i = 1; i <= count; i++) {
     section(i, count, `Account`);
     try {
-      const account = await createAccount({ headless, useProxy });
+      const account = await createAccount({ headless, useProxy, solver });
       created.push({ ok: true, ...account });
       success(`Created ${c.bold(account.email)}`);
     } catch (err) {

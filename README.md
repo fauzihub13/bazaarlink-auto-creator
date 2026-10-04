@@ -45,13 +45,15 @@ It is designed to be run unattended on a VPS: one command in, a working key out.
 git clone https://github.com/0xgetz/bazaarlink-auto-creator.git
 cd bazaarlink-auto-creator
 npm install                 # installs Playwright + Chromium
+npx camoufox-js fetch       # downloads the Camoufox stealth browser (for the non-API solver)
 
-cp .env.example .env        # then set CAPSOLVER_KEY (and optionally PROXY_URL)
+cp .env.example .env        # then set CAPSOLVER_KEY and/or CAPSOLVER_ENABLED
 
 node cli.mjs                # create 1 account (direct connection)
 node cli.mjs --count 5      # create 5 accounts, sequentially
 node cli.mjs --proxy        # route the browser through PROXY_URL from .env
 node cli.mjs --no-proxy     # force a direct connection (default)
+node cli.mjs --solver camoufox   # solve Turnstile with stealth Camoufox (no API key)
 node cli.mjs --headful      # show the browser (debugging)
 node cli.mjs --out keys.json
 ```
@@ -101,15 +103,19 @@ curl https://api.bazaarlink.ai/v1/chat/completions \
 | Verification | `GET https://tempmail.cloud/api/messages` polled until the code arrives |
 | API key | `POST https://bazaarlink.ai/api/v1/keys` with the session cookies |
 
-### Turnstile via CapSolver
+### Turnstile solving: CapSolver or Camoufox
 
-The Cloudflare Turnstile challenge is solved with **CapSolver** (`AntiTurnstileTaskProxyLess`).
-Playwright intercepts the page's `turnstile.render()` call to capture the site key and the token
-callback, requests a token from CapSolver, and feeds that token straight to the sign-up component.
-The flow needs two tokens — one for sign-up and one for the automatic sign-in after email
-verification — and both are obtained the same way. No manual clicking is involved.
+Two interchangeable solvers are supported; pick one with `CAPSOLVER_ENABLED` or `--solver`:
 
-Set `CAPSOLVER_KEY` in `.env` (see `.env.example`).
+- **CapSolver** (`--solver capsolver`, `CAPSOLVER_ENABLED=true`): Playwright intercepts the page's
+  `turnstile.render()` call to capture the site key and the token callback, requests a token from
+  CapSolver (`AntiTurnstileTaskProxyLess`), and feeds it to the sign-up component. Needs
+  `CAPSOLVER_KEY`.
+- **Camoufox** (`--solver camoufox`, `CAPSOLVER_ENABLED=false`): launches the **Camoufox** stealth
+  Firefox build, whose fingerprint spoofing clears Turnstile passively — no captcha API key at all.
+  Requires the browser once via `npx camoufox-js fetch`.
+
+Either way the flow obtains the Turnstile token(s) automatically, with no manual clicking.
 
 ## 📁 Project layout
 
@@ -121,7 +127,8 @@ bazaarlink-auto-creator/
 │   ├── creator.mjs      # orchestrates the full flow (Playwright + HTTP)
 │   ├── tempmail.mjs     # disposable-inbox client + verification-code extraction
 │   ├── random.mjs       # random names, passwords, key labels
-│   └── logger.mjs       # colored, structured terminal output
+│   ├── logger.mjs       # colored, structured terminal output
+│   └── camoufox-compat.json  # config schema for the Camoufox stealth browser
 ├── assets/
 │   ├── logo.svg
 │   └── icon.svg
@@ -137,6 +144,7 @@ bazaarlink-auto-creator/
 - **Node.js 18+**
 - ~1 GB free disk for the Chromium browser
 - A network egress IP that Cloudflare Turnstile accepts (see the note below)
+- For the Camoufox solver: `npx camoufox-js fetch` (stealth Firefox, ~1.3 GB)
 
 ### Ubuntu / Debian system libraries
 
@@ -160,6 +168,7 @@ sudo apt-get install -y libglib2.0-0 libnss3 libnspr4 libdbus-1-3 libatk1.0-0 \
 | `--headful` | off | Show the browser window |
 | `--proxy` | off | Route the browser through `PROXY_URL` (from `.env`) |
 | `--no-proxy` | on | Force a direct connection (overrides `--proxy`) |
+| `--solver <name>` | from `.env` | Turnstile solver: `capsolver` or `camoufox` |
 | `--out <file>` | `results.json` | Where to write the results (JSON, appended) |
 | `--out-txt <file>` | `results.txt` | Plain `email|apiKey` log, appended |
 
@@ -167,7 +176,8 @@ Environment (`.env`):
 
 | Variable | Required | Description |
 | --- | --- | --- |
-| `CAPSOLVER_KEY` | yes | CapSolver API key used to solve Turnstile |
+| `CAPSOLVER_ENABLED` | no | `true` (default) → CapSolver; `false` → Camoufox stealth |
+| `CAPSOLVER_KEY` | if CapSolver | CapSolver API key used to solve Turnstile |
 | `PROXY_URL` | no | Proxy for the browser, e.g. `http://user:pass@host:port`. Used only with `--proxy` |
 | `DEFAULT_PASSWORD` | no | Fixed password for every created account. If empty, a random password is generated |
 
@@ -183,14 +193,14 @@ console.log(account.apiKey);
 
 `createAccount` also accepts `executablePath` (use a system Chrome instead of bundled Chromium),
 `timeoutMs`, `keepOpen`, `proxyUrl` (defaults to `process.env.PROXY_URL`), `capsolverKey`
-(defaults to `process.env.CAPSOLVER_KEY`), and `defaultPassword` (defaults to
-`process.env.DEFAULT_PASSWORD`).
+(defaults to `process.env.CAPSOLVER_KEY`), `defaultPassword` (defaults to
+`process.env.DEFAULT_PASSWORD`), and `solver` (`"capsolver"` or `"camoufox"`).
 
 ## ⚠️ Important: Cloudflare Turnstile & IP reputation
 
-BazaarLink protects **both sign-up and login** with Cloudflare Turnstile. The challenge is solved
-with CapSolver, so the browser's egress IP does not need to pass the widget's own verification — but
-a clean IP still helps the rest of the flow. If a run fails intermittently, just re-run.
+BazaarLink protects **both sign-up and login** with Cloudflare Turnstile. With CapSolver the
+challenge is solved out-of-band; with Camoufox it is cleared by the stealth fingerprint. Either
+way, a clean egress IP still helps the rest of the flow. If a run fails intermittently, just re-run.
 
 ## 🛡️ Security & ethics
 

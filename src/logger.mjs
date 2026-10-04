@@ -20,6 +20,7 @@ export const c = {
   brightGreen: wrap(92),
   brightYellow: wrap(93),
   brightBlue: wrap(94),
+  brightMagenta: wrap(95),
   brightCyan: wrap(96),
 };
 

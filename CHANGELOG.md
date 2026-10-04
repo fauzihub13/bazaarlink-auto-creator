@@ -17,6 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Camoufox solver**: `CAPSOLVER_ENABLED=false` (or `--solver camoufox`) solves Turnstile with the
+  Camoufox stealth Firefox build — no captcha API key required. CapSolver stays the default when
+  `CAPSOLVER_ENABLED` is true.
+- `--solver capsolver|camoufox` CLI flag to override the solver per run.
+- `ensureCamoufoxSchema`: reconciles `camoufox-js`'s BrowserForge mapping against the installed
+  browser's `properties.json` (via `src/camoufox-compat.json`) so newer Camoufox builds launch.
 - `.env` loading (no extra dependency) for `CAPSOLVER_KEY` and `PROXY_URL`.
 - `.env.example` with the required/optional variables.
 - `DEFAULT_PASSWORD`: fixed password for created accounts; random when unset.

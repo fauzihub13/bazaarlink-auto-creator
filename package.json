@@ -3,13 +3,17 @@
   "version": "1.0.0",
   "description": "End-to-end BazaarLink account + API key auto-creator (tempmail.cloud inbox, random identity, Turnstile handling).",
   "type": "module",
-  "bin": { "bazaarlink-create": "./cli.mjs" },
+  "bin": {
+    "bazaarlink-create": "./cli.mjs"
+  },
   "scripts": {
     "create": "node cli.mjs",
     "create:5": "node cli.mjs --count 5",
+    "camoufox": "camoufox-js fetch",
     "postinstall": "playwright install chromium"
   },
   "dependencies": {
+    "camoufox-js": "^0.12.0",
     "playwright": "^1.47.0"
   }
 }
