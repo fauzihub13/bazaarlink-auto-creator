@@ -12,7 +12,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { createInbox, waitForCode } from "./tempmail.mjs";
 import { randomName, randomPassword, randomKeyName, randomEmailLocalPart } from "./random.mjs";
-import { c, step, info } from "./logger.mjs";
+import { c, step, info, warn } from "./logger.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, "..");
@@ -193,6 +193,70 @@ async function deliverTurnstileToken(page, token) {
   if (!delivered) throw new Error("Could not deliver the Turnstile token to the page.");
 }
 
+// Signals that the sign-up request was throttled, e.g. "Too many signup
+// attempts. Please try again later.", HTTP 429, or "slow down". Common on
+// shared IPs without a proxy.
+const RATE_LIMIT_RE = /too many|rate[\s-]?limit|try again later|slow down|\b429\b/i;
+
+// Reset the real Turnstile widget so the next submit gets a fresh token.
+async function resetTurnstile(page) {
+  await page.evaluate(() => {
+    try {
+      if (window.turnstile && typeof window.turnstile.reset === "function") window.turnstile.reset();
+    } catch { /* widget may not expose turnstile */ }
+    const el = document.querySelector('input[name="cf-turnstile-response"]');
+    if (el) el.value = "";
+  }).catch(() => {});
+}
+
+// Collect the text blobs that could carry a throttle/error message: the visible
+// page, captured console lines and any 4xx/5xx JSON body from the site's API.
+function signupSignalText(signals, pageText) {
+  const blobs = [pageText, ...signals.console];
+  for (const e of signals.errors) blobs.push(`${e.status} ${e.body}`);
+  return blobs.map((b) => String(b || "").trim()).filter(Boolean);
+}
+
+// Pull a human-readable message out of a response/console blob. The site's
+// error payloads look like `{ "error": "Too many signup attempts. ..." }`.
+function readableMessage(blob) {
+  const text = String(blob || "");
+  const m = text.match(/"error"\s*:\s*"([^"]+)"/i) || text.match(/"message"\s*:\s*"([^"]+)"/i);
+  return (m ? m[1] : text).replace(/\s+/g, " ").trim();
+}
+
+function rateLimitSignal(signals, pageText) {
+  for (const blob of signupSignalText(signals, pageText)) {
+    if (RATE_LIMIT_RE.test(blob)) return readableMessage(blob).slice(0, 200);
+  }
+  return "";
+}
+
+function signupErrorHint(signals) {
+  const err = signals.errors.find((e) => e.body);
+  if (err) return `HTTP ${err.status} ${readableMessage(err.body)}`.slice(0, 200);
+  const line = signals.console.find((l) => /error|fail|invalid|denied/i.test(l));
+  return line ? readableMessage(line).slice(0, 200) : "";
+}
+
+function resetSignupState(signals) {
+  signals.console.length = 0;
+  signals.errors.length = 0;
+}
+
+// Wait for one sign-up outcome: success, a throttle signal, or a timeout.
+async function waitSignupOutcome(page, signals, timeoutMs) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const text = await page.evaluate(() => document.body.innerText).catch(() => "");
+    if (/Verify your email/i.test(text)) return { status: "success" };
+    const throttle = rateLimitSignal(signals, text);
+    if (throttle) return { status: "rate-limit", message: throttle };
+    await sleep(500);
+  }
+  return { status: "timeout", message: "timed out waiting for the email-verification step" };
+}
+
 /**
  * Create one account + API key.
  * @returns {Promise<object>} { name, email, password, apiKey, baseUrl, createdAt, mailboxPassword }
@@ -277,6 +341,27 @@ export async function createAccount({
 
     const page = await context.newPage();
 
+    // Collect console output and failed API responses so the submit step can
+    // detect a throttle (e.g. "Too many signup attempts") instead of hanging.
+    const signals = { console: [], errors: [] };
+    page.on("console", (msg) => {
+      signals.console.push(msg.text());
+      if (signals.console.length > 50) signals.console.shift();
+    });
+    page.on("response", async (res) => {
+      if (!/bazaarlink\.ai/i.test(res.url())) return;
+      const ctype = String(res.headers()["content-type"] || "");
+      // Only JSON API payloads matter; skip JS/CSS/HTML bundles that merely
+      // contain the word "error" and would trigger a false throttle.
+      if (!ctype.includes("application/json")) return;
+      let body = "";
+      try { body = (await res.text()).slice(0, 500); } catch { /* body unavailable */ }
+      if (res.status() >= 400 || /"error"\s*:/i.test(body)) {
+        signals.errors.push({ status: res.status(), url: res.url(), body });
+        if (signals.errors.length > 20) signals.errors.shift();
+      }
+    });
+
     // 2. Open the sign-up form.
     lastStep = "open-signup";
     step("Opening sign-up form");
@@ -306,15 +391,43 @@ export async function createAccount({
     }
     info("challenge", c.green("solved"));
 
-    // 5. Submit and confirm the verification step appeared.
+    // 5. Submit and confirm the verification step appeared. On shared IPs the
+    //    backend can answer "Too many signup attempts. Please try again later.";
+    //    surface that message and retry with a longer backoff instead of hanging
+    //    on "Submitting sign-up".
     lastStep = "submit-signup";
     step("Submitting sign-up");
-    await page.getByRole("button", { name: "Create account" }).click();
-    await page
-      .waitForFunction(() => /Verify your email/i.test(document.body.innerText), null, { timeout: 60000 })
-      .catch(() => {});
-    if (!/Verify your email/i.test(await page.evaluate(() => document.body.innerText))) {
-      throw new Error("Sign-up did not reach the email-verification step (Turnstile rejected or email already used).");
+    const maxAttempts = 4;
+    let submitted = false;
+    for (let attempt = 1; attempt <= maxAttempts && !submitted; attempt++) {
+      resetSignupState(signals);
+      await page.getByRole("button", { name: "Create account" }).click({ timeout: 15000 }).catch(() => {});
+      const outcome = await waitSignupOutcome(page, signals, 60000);
+      if (outcome.status === "success") {
+        submitted = true;
+        break;
+      }
+      if (outcome.status === "rate-limit" && attempt < maxAttempts) {
+        const waitS = 20 * attempt;
+        warn(
+          `Sign-up throttled: "${outcome.message}" - ${outcome.status} — retrying in ${waitS}s (attempt ${attempt}/${maxAttempts})`,
+        );
+        await sleep(waitS * 1000);
+        // Give the next submit a fresh challenge token.
+        await resetTurnstile(page);
+        if (solverKind === "capsolver") {
+          const token = await solveTurnstileToken(page, capsolverKey, timeoutMs);
+          await deliverTurnstileToken(page, token);
+        } else {
+          await camoufoxTurnstile(page, timeoutMs);
+        }
+        continue;
+      }
+      if (outcome.status === "rate-limit") {
+        throw new Error(`Sign-up still throttled after ${maxAttempts} attempts: ${outcome.message}`);
+      }
+      const hint = signupErrorHint(signals);
+      throw new Error(`Sign-up did not reach the email-verification step (Turnstile rejected or email already used)${hint ? ` — ${hint}` : ""}.`);
     }
 
     // 6. Read the 6-digit code from the inbox.

@@ -38,6 +38,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the sender address, which could contain a misleading 6-digit run.
 - `createInbox` now bootstraps a tempmail.cloud browser session (`POST /api/browser-session`) and
   sends its `tm_browser` cookie; without it the mailbox-creation endpoint answered HTTP 428.
+- Sign-up submit no longer hangs on shared IPs: it reads the API/console throttle message
+  (e.g. "Too many signup attempts. Please try again later."), logs it, refreshes the Turnstile
+  token and retries with backoff instead of stalling on "Submitting sign-up".
 
 ## [1.0.0] - 2026-09-28
 
