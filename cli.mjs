@@ -8,7 +8,7 @@
 //   node cli.mjs --email-prefix mydev          -> custom inbox name prefix
 //   node cli.mjs --out results.json
 //   node cli.mjs --out-txt results.txt
-import { writeFileSync, mkdirSync, readFileSync, appendFileSync } from "node:fs";
+import { writeFileSync, mkdirSync, readFileSync, appendFileSync, renameSync } from "node:fs";
 import { dirname } from "node:path";
 import { createAccount } from "./src/creator.mjs";
 import { c, banner, section, success, error, field, sym } from "./src/logger.mjs";
@@ -47,30 +47,34 @@ async function main() {
     `${count} account(s)  ${sym.dot}  headless=${headless ? c.green("on") : c.yellow("off")}  ${sym.dot}  proxy=${useProxy ? c.green("on") : c.gray("off")}  ${sym.dot}  solver=${activeSolver}`
   );
 
-  const existing = readExisting(outFile);
+  // Persist only accounts that fully succeeded, appended to whatever was already
+  // there so earlier accounts are never lost. Written after EVERY success so an
+  // interrupted run still keeps the accounts created so far.
+  const merged = readExisting(outFile);
+  mkdirSync(dirname(outFile) || ".", { recursive: true });
+  mkdirSync(dirname(outTxtFile) || ".", { recursive: true });
+
+  function persist(record) {
+    merged.push(record);
+    // Atomic JSON write: a crash mid-write can't leave a truncated results file.
+    const tmp = `${outFile}.tmp`;
+    writeFileSync(tmp, JSON.stringify(merged, null, 2));
+    renameSync(tmp, outFile);
+    appendFileSync(outTxtFile, `${record.email}|${record.apiKey}\n`);
+    field("Saved", `${merged.length} account(s) → ${c.brightCyan(outFile)}  ${c.gray("+")} ${c.brightCyan(outTxtFile)}`);
+  }
+
   const created = [];
   for (let i = 1; i <= count; i++) {
     section(i, count, `Account`);
     try {
       const account = await createAccount({ headless, useProxy, solver, emailPrefix });
-      created.push({ ok: true, ...account });
       success(`Created ${c.bold(account.email)}`);
+      created.push({ ok: true, ...account });
+      persist({ ok: true, ...account });
     } catch (err) {
       error(err.message);
     }
-  }
-
-  // Persist only accounts that fully succeeded, appended to whatever was already
-  // there so earlier accounts are never lost.
-  const merged = existing.concat(created);
-  mkdirSync(dirname(outFile) || ".", { recursive: true });
-  writeFileSync(outFile, JSON.stringify(merged, null, 2));
-
-  // Simple "email|apiKey" log, appended line by line.
-  if (created.length) {
-    mkdirSync(dirname(outTxtFile) || ".", { recursive: true });
-    const lines = created.map((r) => `${r.email}|${r.apiKey}`).join("\n") + "\n";
-    appendFileSync(outTxtFile, lines);
   }
 
   const okCount = created.length;

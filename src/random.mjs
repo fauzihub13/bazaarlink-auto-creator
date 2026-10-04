@@ -49,7 +49,7 @@ export function randomName() {
 // the characters the mail provider accepts (it lowercases and strips anything
 // else), so only [a-z0-9] survive. When no prefix is given a random word is used,
 // and a random digit run keeps each address unique.
-export function randomEmailLocalPart(prefix = "", digits = 8) {
+export function randomEmailLocalPart(prefix = "", digits = 3) {
   const clean = String(prefix || "").toLowerCase().replace(/[^a-z0-9]/g, "");
   const base = clean || pick(WORDS).toLowerCase();
   let n = "";

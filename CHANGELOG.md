@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CLI gained `--proxy` / `--no-proxy`; the browser can optionally route through `PROXY_URL`.
 - `results.json` now contains **only successful accounts** and is **appended** to on each run
   (previously every run overwrote the file and recorded failures too).
+- Each account is written to `results.json` / `results.txt` **immediately after it succeeds**,
+  so an interrupted run still keeps the accounts created so far. The JSON write is atomic
+  (temp file + rename) to avoid a truncated file on a crash.
 
 ### Added
 
